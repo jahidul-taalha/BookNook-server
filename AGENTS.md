@@ -11,6 +11,7 @@ Express + MongoDB REST API for a small online library (add, borrow, return books
 ## Layout
 
 - `index.js` - Express app, middleware, route mounting, listen/export.
+- `env.js` - loads `.env` from the project root and exposes the JWT secret helper.
 - `db.js` - cached MongoDB connection and index setup.
 - `middleware/auth.js` - `verifyToken` (HS256 JWT via `jose`).
 - `routes/books.js` - `/books` routes.
@@ -22,6 +23,7 @@ Express + MongoDB REST API for a small online library (add, borrow, return books
 - `npm run dev` - start with nodemon.
 - `npm start` - start once.
 - `npm test` - run API self-check (spawns server on a test port).
+- `node scripts/verify-post-book.js` - verify POST /books with the `.env` JWT secret.
 
 ## Rules
 

@@ -1,4 +1,5 @@
 import { jwtVerify } from "jose";
+import { getJwtSecret } from "../env.js";
 
 export async function verifyToken(req, res, next) {
   try {
@@ -12,7 +13,7 @@ export async function verifyToken(req, res, next) {
       return res.status(401).json({ message: "Authorization token is required" });
     }
 
-    const secret = process.env.JWT_SECRET;
+    const secret = getJwtSecret();
     if (!secret) {
       return res.status(500).json({ message: "JWT_SECRET is not configured" });
     }

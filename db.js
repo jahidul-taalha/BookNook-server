@@ -1,3 +1,4 @@
+import "./env.js";
 import { MongoClient } from "mongodb";
 
 let clientPromise = null;

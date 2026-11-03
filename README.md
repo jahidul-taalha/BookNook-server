@@ -28,6 +28,7 @@ Express + MongoDB REST API for a small online library. Users can add books, borr
    npm run dev   # nodemon
    npm start     # single run
    npm test      # API self-check against a test database
+   node scripts/verify-post-book.js  # POST /books using JWT_SECRET from .env
    ```
 
 The app is also exported for Vercel (`vercel.json` included). The MongoDB connection is cached and the unique `borrows` index on `{ bookId, userEmail }` is created on startup.
