@@ -10,7 +10,7 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 router.post("/", verifyToken, async (req, res) => {
   try {
     const { bookId } = req.body || {};
-    if (!bookId || !ObjectId.isValid(bookId)) {
+    if (typeof bookId !== "string" || !ObjectId.isValid(bookId)) {
       return res.status(400).json({ message: "A valid bookId is required" });
     }
 

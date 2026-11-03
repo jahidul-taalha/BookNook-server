@@ -65,8 +65,15 @@ router.post("/", verifyToken, async (req, res) => {
       });
     }
 
-    if (typeof title !== "string" || typeof author !== "string") {
-      return res.status(400).json({ message: "title and author must be strings" });
+    if (
+      typeof title !== "string" ||
+      typeof author !== "string" ||
+      !title.trim() ||
+      !author.trim()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "title and author must be non-empty strings" });
     }
 
     if (!CATEGORIES.includes(category)) {
@@ -75,7 +82,10 @@ router.post("/", verifyToken, async (req, res) => {
         .json({ message: `category must be one of ${CATEGORIES.join(", ")}` });
     }
 
-    const copies = Number(totalCopies);
+    const copies =
+      typeof totalCopies === "number" || typeof totalCopies === "string"
+        ? Number(totalCopies)
+        : Number.NaN;
     if (!Number.isInteger(copies) || copies <= 0) {
       return res
         .status(400)
@@ -169,7 +179,10 @@ router.patch("/:id", verifyToken, async (req, res) => {
     }
 
     if (body.totalCopies !== undefined) {
-      const copies = Number(body.totalCopies);
+      const copies =
+        typeof body.totalCopies === "number" || typeof body.totalCopies === "string"
+          ? Number(body.totalCopies)
+          : Number.NaN;
       if (!Number.isInteger(copies) || copies <= 0) {
         return res
           .status(400)
