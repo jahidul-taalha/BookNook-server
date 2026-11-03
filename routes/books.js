@@ -48,4 +48,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const db = await getDb();
+    const book = await db
+      .collection("books")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    return res.json(book);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch book" });
+  }
+});
+
 export default router;
