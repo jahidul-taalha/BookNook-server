@@ -197,6 +197,39 @@ router.patch("/:id", verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const db = await getDb();
+    const books = db.collection("books");
+    const bookId = new ObjectId(id);
+    const book = await books.findOne({ _id: bookId });
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (
+      String(book.addedBy?.email || "").toLowerCase() !== req.user.email
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete books you added" });
+    }
+
+    await db.collection("borrows").deleteMany({ bookId });
+    await books.deleteOne({ _id: bookId });
+
+    return res.json({ message: "Book deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete book" });
+  }
+});
+
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
