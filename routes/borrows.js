@@ -92,4 +92,37 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid borrow id" });
+    }
+
+    const db = await getDb();
+    const borrows = db.collection("borrows");
+    const _id = new ObjectId(id);
+    const borrow = await borrows.findOne({ _id });
+
+    if (!borrow) {
+      return res.status(404).json({ message: "Borrow not found" });
+    }
+
+    if (String(borrow.userEmail || "").toLowerCase() !== req.user.email) {
+      return res
+        .status(403)
+        .json({ message: "You can only return your own borrows" });
+    }
+
+    await borrows.deleteOne({ _id });
+    await db
+      .collection("books")
+      .updateOne({ _id: borrow.bookId }, { $inc: { availableCopies: 1 } });
+
+    return res.json({ message: "Book returned successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to return book" });
+  }
+});
+
 export default router;
