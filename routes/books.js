@@ -103,6 +103,100 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
+router.patch("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const db = await getDb();
+    const books = db.collection("books");
+    const book = await books.findOne({ _id: new ObjectId(id) });
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (
+      String(book.addedBy?.email || "").toLowerCase() !== req.user.email
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only edit books you added" });
+    }
+
+    const body = req.body || {};
+    const updates = {};
+
+    if (body.title !== undefined) {
+      if (typeof body.title !== "string" || !body.title.trim()) {
+        return res.status(400).json({ message: "title must be a non-empty string" });
+      }
+      updates.title = body.title.trim();
+    }
+
+    if (body.author !== undefined) {
+      if (typeof body.author !== "string" || !body.author.trim()) {
+        return res
+          .status(400)
+          .json({ message: "author must be a non-empty string" });
+      }
+      updates.author = body.author.trim();
+    }
+
+    if (body.category !== undefined) {
+      if (!CATEGORIES.includes(body.category)) {
+        return res.status(400).json({
+          message: `category must be one of ${CATEGORIES.join(", ")}`,
+        });
+      }
+      updates.category = body.category;
+    }
+
+    if (body.image !== undefined) {
+      if (typeof body.image !== "string") {
+        return res.status(400).json({ message: "image must be a string" });
+      }
+      updates.image = body.image;
+    }
+
+    if (body.description !== undefined) {
+      if (typeof body.description !== "string") {
+        return res.status(400).json({ message: "description must be a string" });
+      }
+      updates.description = body.description;
+    }
+
+    if (body.totalCopies !== undefined) {
+      const copies = Number(body.totalCopies);
+      if (!Number.isInteger(copies) || copies <= 0) {
+        return res
+          .status(400)
+          .json({ message: "totalCopies must be a positive integer" });
+      }
+
+      const difference = copies - book.totalCopies;
+      updates.totalCopies = copies;
+      updates.availableCopies = Math.max(0, book.availableCopies + difference);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.json(book);
+    }
+
+    const updated = await books.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updates },
+      { returnDocument: "after" }
+    );
+
+    return res.json(updated?.value ?? updated);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update book" });
+  }
+});
+
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
