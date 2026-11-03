@@ -48,6 +48,61 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/", verifyToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const { title, author, category, image, description, totalCopies } = body;
+
+    if (
+      !title ||
+      !author ||
+      !category ||
+      totalCopies === undefined ||
+      totalCopies === null
+    ) {
+      return res.status(400).json({
+        message: "title, author, category and totalCopies are required",
+      });
+    }
+
+    if (typeof title !== "string" || typeof author !== "string") {
+      return res.status(400).json({ message: "title and author must be strings" });
+    }
+
+    if (!CATEGORIES.includes(category)) {
+      return res
+        .status(400)
+        .json({ message: `category must be one of ${CATEGORIES.join(", ")}` });
+    }
+
+    const copies = Number(totalCopies);
+    if (!Number.isInteger(copies) || copies <= 0) {
+      return res
+        .status(400)
+        .json({ message: "totalCopies must be a positive integer" });
+    }
+
+    const book = {
+      title: title.trim(),
+      author: author.trim(),
+      category,
+      image: typeof image === "string" ? image : "",
+      description: typeof description === "string" ? description : "",
+      totalCopies: copies,
+      availableCopies: copies,
+      addedBy: { name: req.user.name, email: req.user.email },
+      createdAt: new Date(),
+    };
+
+    const db = await getDb();
+    const result = await db.collection("books").insertOne(book);
+
+    return res.status(201).json({ ...book, _id: result.insertedId });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to add book" });
+  }
+});
+
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
