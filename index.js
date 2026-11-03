@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { getDb, ensureIndexes } from "./db.js";
 import booksRouter from "./routes/books.js";
+import borrowsRouter from "./routes/borrows.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/books", booksRouter);
+app.use("/borrows", borrowsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
