@@ -102,6 +102,24 @@ async function main() {
     const health = await request("GET", "/");
     check("GET / health", health.status === 200 && health.text.includes("running"));
 
+    const preflight = await fetch(`${BASE_URL}/books`, {
+      method: "OPTIONS",
+      headers: {
+        Origin: "http://localhost:3000",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "authorization,content-type",
+      },
+    });
+    check(
+      "CORS preflight allows localhost:3000 and Authorization",
+      preflight.status === 204 &&
+        preflight.headers.get("access-control-allow-origin") ===
+          "http://localhost:3000" &&
+        String(preflight.headers.get("access-control-allow-headers"))
+          .toLowerCase()
+          .includes("authorization")
+    );
+
     const noToken = await request("GET", "/books/000000000000000000000000");
     check("GET /books/:id without token -> 401", noToken.status === 401);
 
