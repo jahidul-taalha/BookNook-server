@@ -77,4 +77,19 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/", verifyToken, async (req, res) => {
+  try {
+    const db = await getDb();
+    const borrows = await db
+      .collection("borrows")
+      .find({ userEmail: req.user.email })
+      .sort({ borrowDate: -1 })
+      .toArray();
+
+    return res.json(borrows);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch borrows" });
+  }
+});
+
 export default router;
