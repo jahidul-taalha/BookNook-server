@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { getDb, ensureIndexes } from "./db.js";
+import booksRouter from "./routes/books.js";
 
 const app = express();
 
@@ -27,6 +28,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.type("text/plain").send("BookNook server is running");
 });
+
+app.use("/books", booksRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
